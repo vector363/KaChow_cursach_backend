@@ -1,74 +1,76 @@
 package com.example.presentation.routes
 
+import com.example.data.database.InMemoryUserStorage
 import com.example.domain.usecase.LoginUseCase
 import com.example.presentation.models.LoginRequest
-import com.example.presentation.models.LoginResponse
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import com.example.data.repository.UserRepositoryImpl
-import com.example.domain.usecase.GetUserUseCase
+import com.example.presentation.models.AuthResponse
 import com.example.presentation.models.RegisterRequest
 import com.example.security.JwtConfig
 import com.example.security.PasswordHasher
 
 
 fun Route.authRoutes() {
-    val userRepository = UserRepositoryImpl()
-    val loginUseCase = LoginUseCase(userRepository)
-    val getUserUseCase = GetUserUseCase(userRepository)
-
     route("/auth") {
-        post("/login") {
-            val request = call.receive<LoginRequest>()
-            val token = loginUseCase.execute(request.username, request.password)
-
-            if (token != null) {
-                val user = loginUseCase.getUser(request.username)
-                call.respond(
-                    HttpStatusCode.OK,
-                    LoginResponse(
-                        token = token,
-                        userId = user?.id ?: 0,
-                        username = user?.username ?: "",
-                        email = user?.email ?: ""
-                    )
-                )
-            } else {
-                call.respond(
-                    HttpStatusCode.Unauthorized,
-                    mapOf("error" to "Invalid username or password")
-                )
-            }
-        }
-
         post("/register") {
             val request = call.receive<RegisterRequest>()
 
-            val existingUser = loginUseCase.getUser(request.username)
+            val existingUser = InMemoryUserStorage.findByUsername(request.username)
             if (existingUser != null) {
-                call.respond(HttpStatusCode.Conflict, mapOf("error" to "User already exists"))
+                call.respond(HttpStatusCode.Conflict, mapOf("error" to "Username already exists"))
                 return@post
             }
 
             val passwordHash = PasswordHasher.hash(request.password)
-            val newUser = userRepository.createUser(
+
+            val user = InMemoryUserStorage.createUser(
                 username = request.username,
                 email = request.email,
                 passwordHash = passwordHash
             )
 
-            val token = JwtConfig.generateToken(newUser.id, newUser.username, newUser.role)
+            val token = JwtConfig.generateToken(user.id, user.username, user.role)
 
             call.respond(
                 HttpStatusCode.Created,
-                LoginResponse(
+                AuthResponse(
                     token = token,
-                    userId = newUser.id,
-                    username = newUser.username,
-                    email = newUser.email ?: ""
+                    userId = user.id,
+                    username = user.username,
+                    email = user.email ?: "",
+                    role = user.role
+                )
+            )
+        }
+
+        post("/login") {
+            val request = call.receive<LoginRequest>()
+
+            val user = InMemoryUserStorage.findByUsername(request.username)
+            if (user == null) {
+                call.respond(HttpStatusCode.Unauthorized, mapOf("error" to "Invalid username or password"))
+                return@post
+            }
+
+            if (!PasswordHasher.verify(request.password, user.passwordHash)) {
+                call.respond(HttpStatusCode.Unauthorized, mapOf("error" to "Invalid username or password"))
+                return@post
+            }
+
+            val token = JwtConfig.generateToken(user.id, user.username, user.role)
+
+            call.respond(
+                HttpStatusCode.OK,
+                AuthResponse(
+                    token = token,
+                    userId = user.id,
+                    username = user.username,
+                    email = user.email ?: "",
+                    role = user.role
                 )
             )
         }
