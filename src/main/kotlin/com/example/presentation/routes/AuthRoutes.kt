@@ -1,7 +1,6 @@
 package com.example.presentation.routes
 
 import com.example.data.database.InMemoryUserStorage
-import com.example.domain.usecase.LoginUseCase
 import com.example.presentation.models.LoginRequest
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -12,22 +11,33 @@ import com.example.presentation.models.AuthResponse
 import com.example.presentation.models.RegisterRequest
 import com.example.security.JwtConfig
 import com.example.security.PasswordHasher
+import com.example.data.repository.UserRepositoryImpl
+
 
 
 fun Route.authRoutes() {
+    val userRepository = UserRepositoryImpl()
+
+
     route("/auth") {
         post("/register") {
             val request = call.receive<RegisterRequest>()
 
-            val existingUser = InMemoryUserStorage.findByUsername(request.username)
+            val existingUser = userRepository.findByUsername(request.username)
             if (existingUser != null) {
-                call.respond(HttpStatusCode.Conflict, mapOf("error" to "Username already exists"))
+                call.respond(HttpStatusCode.Conflict, mapOf("error" to "User name already exists"))
+                return@post
+            }
+
+            val existingEmail = userRepository.findByEmail(request.email)
+            if (existingEmail != null) {
+                call.respond(HttpStatusCode.Conflict, mapOf("error" to "Email already exists"))
                 return@post
             }
 
             val passwordHash = PasswordHasher.hash(request.password)
 
-            val user = InMemoryUserStorage.createUser(
+            val user = userRepository.createUser(
                 username = request.username,
                 email = request.email,
                 passwordHash = passwordHash
@@ -50,7 +60,7 @@ fun Route.authRoutes() {
         post("/login") {
             val request = call.receive<LoginRequest>()
 
-            val user = InMemoryUserStorage.findByUsername(request.username)
+            val user = userRepository.findByUsername(request.username)
             if (user == null) {
                 call.respond(HttpStatusCode.Unauthorized, mapOf("error" to "Invalid username or password"))
                 return@post
