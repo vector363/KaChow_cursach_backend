@@ -1,7 +1,7 @@
 package com.example.plugins
 
 import com.example.presentation.models.UserResponse
-import com.example.presentation.routes.authRoutes
+import com.example.presentation.routes.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
@@ -31,6 +31,8 @@ fun Application.configureRouting() {
                     )
                 )
             }
+            carRoutes()
+            dealershipRoutes()
         }
     }
 }

@@ -1,6 +1,5 @@
 package com.example.presentation.routes
 
-import com.example.data.database.InMemoryUserStorage
 import com.example.presentation.models.LoginRequest
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -17,7 +16,6 @@ import com.example.data.repository.UserRepositoryImpl
 
 fun Route.authRoutes() {
     val userRepository = UserRepositoryImpl()
-
 
     route("/auth") {
         post("/register") {
