@@ -33,6 +33,7 @@ fun Application.configureRouting() {
             }
             carRoutes()
             dealershipRoutes()
+            favoriteRoutes()
         }
     }
 }

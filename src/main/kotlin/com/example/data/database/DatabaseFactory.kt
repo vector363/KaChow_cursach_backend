@@ -30,13 +30,14 @@ object DatabaseFactory {
         Database.connect(dataSource)
 
         transaction {
-            SchemaUtils.drop(CarTable)
-            SchemaUtils.drop(DealershipTable)
+            //SchemaUtils.drop(CarTable)
+            //SchemaUtils.drop(DealershipTable)
 
             SchemaUtils.createMissingTablesAndColumns(
                 UsersTable,
                 DealershipTable,
-                CarTable
+                CarTable,
+                FavoriteTable
             )
         }
     }
