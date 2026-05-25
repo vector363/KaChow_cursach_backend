@@ -3,7 +3,7 @@ package com.example.presentation.models
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class AddCarRequest(
+data class UpdateCarRequest(
     val brand: String,
     val model: String,
     val price: Int,

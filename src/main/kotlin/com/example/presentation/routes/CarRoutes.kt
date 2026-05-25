@@ -4,6 +4,7 @@ import com.example.data.repository.CarRepositoryImpl
 import com.example.data.repository.FavoriteRepositoryImpl
 import com.example.presentation.models.AddCarRequest
 import com.example.presentation.models.CarWithFavorite
+import com.example.presentation.models.UpdateCarRequest
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
@@ -18,6 +19,19 @@ fun Route.carRoutes() {
     val favoriteRepository = FavoriteRepositoryImpl()
 
     route("/car") {
+
+        get("/dealership/{dealershipId}") {
+            val dealershipId = call.parameters["dealershipId"]?.toIntOrNull()
+                ?: throw IllegalArgumentException("Invalid dealership id")
+
+            val userId = call.principal<JWTPrincipal>()
+                ?.payload?.getClaim("userId")?.asInt()
+                ?: throw IllegalArgumentException("User not found")
+
+            val cars = carRepository.getCarsByDealership(dealershipId, userId)
+            call.respond(cars)
+        }
+
         get("/all"){
             val userId = call.principal<JWTPrincipal>()
                 ?.payload?.getClaim("userId")?.asInt()
@@ -41,17 +55,69 @@ fun Route.carRoutes() {
             call.respond(response)
         }
 
-        post("/add"){
+        post("/add") {
             val request = call.receive<AddCarRequest>()
 
             val car = carRepository.createCar(
                 brand = request.brand,
                 model = request.model,
+                price = request.price,
+                year = request.year,
+                mileage = request.mileage,
+                engine = request.engine,
+                horsepower = request.horsepower,
+                transmission = request.transmission,
+                driveUnit = request.driveUnit,
+                color = request.color,
+                description = request.description,
+                imageUrl = request.imageUrl,
                 dealershipId = request.dealershipId
             )
 
             call.respond(HttpStatusCode.Created, car)
         }
 
+        get("/{id}") {
+            val id = call.parameters["id"]?.toIntOrNull()
+                ?: throw IllegalArgumentException("Invalid car id")
+
+            val car = carRepository.getCarById(id)
+            if (car == null) {
+                call.respond(HttpStatusCode.NotFound, mapOf("error" to "Car not found"))
+                return@get
+            }
+
+            call.respond(car)
+        }
+
+        put("/{id}") {
+            val id = call.parameters["id"]?.toIntOrNull()
+                ?: throw IllegalArgumentException("Invalid car id")
+
+            val request = call.receive<UpdateCarRequest>()
+
+            val userId = call.principal<JWTPrincipal>()?.payload?.getClaim("userId")?.asInt()
+                ?: throw IllegalArgumentException("User not found")
+
+            val isFavorite = favoriteRepository.isFavorite(userId, id)
+
+            val updatedCar = carRepository.updateCar(
+                id = id,
+                brand = request.brand,
+                model = request.model,
+                price = request.price,
+                year = request.year,
+                mileage = request.mileage,
+                engine = request.engine,
+                horsepower = request.horsepower,
+                transmission = request.transmission,
+                driveUnit = request.driveUnit,
+                color = request.color,
+                description = request.description,
+                imageUrl = request.imageUrl,
+                dealershipId = request.dealershipId,
+            )
+            call.respond(HttpStatusCode.OK, updatedCar)
+        }
     }
 }

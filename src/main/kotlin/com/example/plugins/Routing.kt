@@ -1,5 +1,7 @@
 package com.example.plugins
 
+import com.example.data.repository.UserRepositoryImpl
+import com.example.domain.repository.UserRepository
 import com.example.presentation.models.UserResponse
 import com.example.presentation.routes.*
 import io.ktor.server.application.*
@@ -13,6 +15,7 @@ fun Application.configureRouting() {
         get("/") {
             call.respondText("server is running!")
         }
+        staticRoutes()
 
         authRoutes()
 
@@ -20,20 +23,46 @@ fun Application.configureRouting() {
             get("/me") {
                 val principal = call.principal<JWTPrincipal>()
                 val userId = principal?.payload?.getClaim("userId")?.asInt()
-                val username = principal?.payload?.getClaim("username")?.asString()
-                val role = principal?.payload?.getClaim("role")?.asString()
+
+                if (userId == null) {
+                    call.respond(com.example.presentation.models.UserResponse(
+                        userId = null,
+                        username = null,
+                        role = null,
+                        email = null,
+                        createdAt = null
+                    ))
+                    return@get
+                }
+
+                val userRepository = UserRepositoryImpl()
+                val user = userRepository.findById(userId)
+
+                if (user == null) {
+                    call.respond(com.example.presentation.models.UserResponse(
+                        userId = null,
+                        username = null,
+                        role = null,
+                        email = null,
+                        createdAt = null
+                    ))
+                    return@get
+                }
 
                 call.respond(
                     UserResponse(
-                        userId = userId,
-                        username = username,
-                        role = role
+                        userId = user.id,
+                        username = user.username,
+                        role = user.role,
+                        email = user.email,
+                        createdAt = user.createdAt
                     )
                 )
             }
             carRoutes()
             dealershipRoutes()
             favoriteRoutes()
+            imageRoutes()
         }
     }
 }
