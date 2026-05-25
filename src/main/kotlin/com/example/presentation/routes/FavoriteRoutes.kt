@@ -22,15 +22,8 @@ fun Route.favoriteRoutes() {
                 call.respond(HttpStatusCode.Unauthorized, mapOf("error" to "User not found"))
                 return@get
             }
-            val favorites = favoriteRepository.getUserFavorites(userId).map { car ->
-                CarWithFavorite(
-                    id = car.id,
-                    brand = car.brand,
-                    model = car.model,
-                    dealershipId = car.dealershipId,
-                    isFavorite = true
-                )
-            }
+            val favorites = favoriteRepository.getUserFavorites(userId)
+
             call.respond(favorites)
         }
 

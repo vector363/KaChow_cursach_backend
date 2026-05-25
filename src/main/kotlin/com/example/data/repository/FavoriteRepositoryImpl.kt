@@ -1,9 +1,9 @@
 package com.example.data.repository
 
-
 import com.example.data.database.tables.CarTable
 import com.example.data.database.tables.FavoriteTable
 import com.example.domain.model.Car
+import com.example.domain.model.CarPreview
 import com.example.domain.repository.FavoriteRepository
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.and
@@ -14,16 +14,21 @@ import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransacti
 
 
 class FavoriteRepositoryImpl: FavoriteRepository {
-    override suspend fun getUserFavorites(userId: Int): List<Car> = newSuspendedTransaction {
+    override suspend fun getUserFavorites(userId: Int): List<CarPreview> = newSuspendedTransaction {
         (FavoriteTable innerJoin CarTable)
             .selectAll()
             .where { FavoriteTable.userId eq userId }
             .map { row ->
-                Car(
+                CarPreview(
                     id = row[CarTable.id],
                     brand = row[CarTable.brand],
                     model = row[CarTable.model],
-                    dealershipId = row[CarTable.dealershipId]
+                    price = row[CarTable.price],
+                    year = row[CarTable.year],
+                    mileage = row[CarTable.mileage],
+                    imageUrl = row[CarTable.imageUrl],
+                    dealershipId = row[CarTable.dealershipId],
+                    isFavorite = true
                 )
             }
     }
