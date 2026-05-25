@@ -13,7 +13,6 @@ import com.example.security.PasswordHasher
 import com.example.data.repository.UserRepositoryImpl
 
 
-
 fun Route.authRoutes() {
     val userRepository = UserRepositoryImpl()
 
@@ -23,13 +22,13 @@ fun Route.authRoutes() {
 
             val existingUser = userRepository.findByUsername(request.username)
             if (existingUser != null) {
-                call.respond(HttpStatusCode.Conflict, mapOf("error" to "User name already exists"))
+                call.respond(HttpStatusCode.Conflict, mapOf("error" to "Имя пользоваьтеля уже занято"))
                 return@post
             }
 
             val existingEmail = userRepository.findByEmail(request.email)
             if (existingEmail != null) {
-                call.respond(HttpStatusCode.Conflict, mapOf("error" to "Email already exists"))
+                call.respond(HttpStatusCode.Conflict, mapOf("error" to "Аккаунт с таким email уже существует"))
                 return@post
             }
 
@@ -58,7 +57,7 @@ fun Route.authRoutes() {
         post("/login") {
             val request = call.receive<LoginRequest>()
 
-            val user = userRepository.findByUsername(request.username)
+            val user = userRepository.findByEmail(request.email)
             if (user == null) {
                 call.respond(HttpStatusCode.Unauthorized, mapOf("error" to "Invalid username or password"))
                 return@post
