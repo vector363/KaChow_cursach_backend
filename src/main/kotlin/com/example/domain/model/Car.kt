@@ -1,6 +1,5 @@
 package com.example.domain.model
 
-import com.example.presentation.models.CarWithFavorite
 import kotlinx.serialization.Serializable
 
 @Serializable

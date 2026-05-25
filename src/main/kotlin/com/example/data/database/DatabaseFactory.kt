@@ -11,6 +11,8 @@ object DatabaseFactory {
     fun init() {
         val config = HikariConfig().apply {
             jdbcUrl = "jdbc:postgresql://ep-red-grass-anprvmu7.c-6.us-east-1.aws.neon.tech:5432/neondb?sslmode=require&channel_binding=require"
+            //jdbcUrl = "jdbc:postgresql://ep-red-grass-anprvmu7.c-6.us-east-1.aws.neon.tech:5432/neondb?sslmode=require"
+            //jdbcUrl = "jdbc:postgresql://ep-red-grass-anprvmu7.c-6.us-east-1.aws.neon.tech:5432/neondb?sslmode=disable"
             username = "neondb_owner"
             password = "npg_0OpVfUetZF4l"
             driverClassName = "org.postgresql.Driver"
@@ -30,13 +32,16 @@ object DatabaseFactory {
         Database.connect(dataSource)
 
         transaction {
-            //SchemaUtils.drop(CarTable)
-            //SchemaUtils.drop(DealershipTable)
+//            SchemaUtils.drop(FavoriteTable)
+//            SchemaUtils.drop(CarTable)
+//            SchemaUtils.drop(DealershipTable)
+//            SchemaUtils.drop(UsersTable)
 
             SchemaUtils.createMissingTablesAndColumns(
                 UsersTable,
                 DealershipTable,
                 CarTable,
+                CarImageTable,
                 FavoriteTable
             )
         }

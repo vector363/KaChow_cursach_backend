@@ -1,7 +1,6 @@
 package com.example.presentation.routes
 
 import com.example.data.repository.FavoriteRepositoryImpl
-import com.example.presentation.models.CarWithFavorite
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
