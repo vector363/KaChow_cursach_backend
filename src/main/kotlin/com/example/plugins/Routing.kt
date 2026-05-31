@@ -10,6 +10,8 @@ import io.ktor.server.auth.jwt.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
+val userRepository: UserRepository = UserRepositoryImpl()
+
 fun Application.configureRouting() {
     routing {
         get("/") {
@@ -24,41 +26,23 @@ fun Application.configureRouting() {
                 val principal = call.principal<JWTPrincipal>()
                 val userId = principal?.payload?.getClaim("userId")?.asInt()
 
-                if (userId == null) {
-                    call.respond(com.example.presentation.models.UserResponse(
-                        userId = null,
-                        username = null,
-                        role = null,
-                        email = null,
-                        createdAt = null
-                    ))
-                    return@get
-                }
-
-                val userRepository = UserRepositoryImpl()
-                val user = userRepository.findById(userId)
-
-                if (user == null) {
-                    call.respond(com.example.presentation.models.UserResponse(
-                        userId = null,
-                        username = null,
-                        role = null,
-                        email = null,
-                        createdAt = null
-                    ))
-                    return@get
+                val user = if (userId != null) {
+                    userRepository.findById(userId)
+                } else {
+                    null
                 }
 
                 call.respond(
                     UserResponse(
-                        userId = user.id,
-                        username = user.username,
-                        role = user.role,
-                        email = user.email,
-                        createdAt = user.createdAt
+                        userId = user?.id,
+                        username = user?.username,
+                        role = user?.role,
+                        email = user?.email,
+                        createdAt = user?.createdAt
                     )
                 )
             }
+
             carRoutes()
             dealershipRoutes()
             favoriteRoutes()
