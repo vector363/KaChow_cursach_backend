@@ -134,8 +134,6 @@ class CarRepositoryImpl: CarRepository {
         description: String,
         imageUrl: String?,
         dealershipId: Int): Car = newSuspendedTransaction {
-        val existingCar = CarTable.selectAll().where { CarTable.id eq id }.singleOrNull()
-            ?: throw NoSuchElementException("Car with id $id not found")
 
         CarTable.update({ CarTable.id eq id }) {
             it[CarTable.brand] = brand

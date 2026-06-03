@@ -15,12 +15,7 @@ fun Route.favoriteRoutes() {
     route("/favorites"){
         get{
             val userId = call.principal<JWTPrincipal>()
-                ?.payload?.getClaim("userId")?.asInt()
-
-            if (userId == null) {
-                call.respond(HttpStatusCode.Unauthorized, mapOf("error" to "User not found"))
-                return@get
-            }
+                ?.payload?.getClaim("userId")?.asInt()!!
             val favorites = favoriteRepository.getUserFavorites(userId)
 
             call.respond(favorites)
@@ -28,13 +23,7 @@ fun Route.favoriteRoutes() {
 
         post("/{carId}"){
             val userId = call.principal<JWTPrincipal>()
-                ?.payload?.getClaim("userId")?.asInt()
-
-            if (userId == null) {
-                call.respond(HttpStatusCode.Unauthorized, mapOf("error" to "User not found"))
-                return@post
-            }
-
+                ?.payload?.getClaim("userId")?.asInt()!!
             val carId = call.parameters["carId"]?.toIntOrNull()
 
             if (carId == null) {

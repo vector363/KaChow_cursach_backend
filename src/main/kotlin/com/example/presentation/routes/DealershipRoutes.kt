@@ -86,6 +86,4 @@ fun Route.dealershipRoutes() {
             call.respond(HttpStatusCode.OK, mapOf("message" to "Image deleted", "dealership" to updated))
         }
     }
-
-
 }

@@ -19,27 +19,22 @@ fun Route.carRoutes() {
     val favoriteRepository = FavoriteRepositoryImpl()
 
     route("/car") {
-
         get("/dealership/{dealershipId}") {
             val dealershipId = call.parameters["dealershipId"]?.toIntOrNull()
                 ?: throw IllegalArgumentException("Invalid dealership id")
 
             val userId = call.principal<JWTPrincipal>()
-                ?.payload?.getClaim("userId")?.asInt()
-                ?: throw IllegalArgumentException("User not found")
+                ?.payload?.getClaim("userId")?.asInt()!!
 
             val cars = carRepository.getCarsByDealership(dealershipId, userId)
+
             call.respond(cars)
         }
 
         get("/all"){
             val userId = call.principal<JWTPrincipal>()
-                ?.payload?.getClaim("userId")?.asInt()
+                ?.payload?.getClaim("userId")?.asInt()!!
 
-            if (userId == null) {
-                call.respond(HttpStatusCode.Unauthorized, mapOf("error" to "User not found"))
-                return@get
-            }
             val allCars = carRepository.getAllCar()
             val favorites = favoriteRepository.getUserFavorites(userId).map { it.id }.toSet()
 
@@ -95,11 +90,6 @@ fun Route.carRoutes() {
                 ?: throw IllegalArgumentException("Invalid car id")
 
             val request = call.receive<UpdateCarRequest>()
-
-            val userId = call.principal<JWTPrincipal>()?.payload?.getClaim("userId")?.asInt()
-                ?: throw IllegalArgumentException("User not found")
-
-            val isFavorite = favoriteRepository.isFavorite(userId, id)
 
             val updatedCar = carRepository.updateCar(
                 id = id,
